@@ -1,43 +1,41 @@
-function createApp() {
-  let app = document.createElement(`div`);
-  app.classList.add("bg-white");
+const config = {
+  url: "https://api.recursionist.io/builder/computers?type=",
+};
 
-  let titleString = `
-      <div class="col-12 d-flex justify-content-center bg-dark text-white">
-        <h1 class="p-3">Computer Builder</h1>
-      </div>
-    `;
+async function fetchData(parts) {
+  let endpoint = config.url + parts;
 
-  app.innerHTML = titleString;
-  app.append(addInputCPU());
-  return app;
+  return fetch(endpoint)
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    });
 }
 
-function addInputCPU() {
-  let cpuBox = document.createElement("div");
+function createOption(data, id, optionName) {
+  let selector = document.getElementById(id);
 
-  let cpuInput = `
-    <div class="m-2 pt-3">
-      <h2><b>Step1</b>: Select your CPU</h2>
-    </div>
-    <div class="mx-2 pt-1 d-flex justify-content-start flex-column d-sm-flex flex-sm-row justify-content-sm-start aligin-items-sm-center">
-      <h3>Brand</h3>
-      <select id="cpuBrand" class="mx-3 col-9 col-sm-3 custom-select">
-        <option>-</option>
-        <option>ccc</option>
-        <option>ddd</option>
-      </select>
-      <h3>Model</h3>
-      <select id="cpuModel" class="col-9 mx-3 col-sm-3 custom-select">
-        <option>-</option>
-        <option>ccc</option>
-        <option>ddd</option>
-      </select>
-    </div>
-  `;
-  cpuBox.innerHTML = cpuInput;
-  return cpuBox;
+  if (optionName == "Brand") {
+    data.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.Brand;
+      option.textContent = item.Brand;
+      selector.appendChild(option);
+    });
+  } else if (optionName == "Model") {
+    data.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.Model;
+      option.textContent = item.Model;
+      selector.appendChild(option);
+    });
+  }
 }
 
-let parent = document.getElementById("target");
-parent.append(createApp());
+fetchData("cpu")
+  .then((data) => {
+    createOption(data, "cpuBrand", "Brand");
+  })
+  .catch((error) => {
+    console.log(error);
+  });
