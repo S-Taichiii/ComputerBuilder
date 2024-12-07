@@ -13,7 +13,20 @@ function initializeSelect(id) {
   select.appendChild(defaultOption);
 }
 
-function createCpuAndGpuOption(partsName) {
+function addOption(item, placeToAdd, selectName) {
+  const option = document.createElement("option");
+
+  if (selectName === "Brand") {
+    option.value = item.Brand;
+    option.textContent = item.Brand;
+  } else {
+    option.value = item.Model;
+    option.textContent = item.Model;
+  }
+  placeToAdd.appendChild(option);
+}
+
+function createCpuAndGpuSelect(partsName) {
   let endpoint = config.url + partsName;
   let brandId = partsName + "Brand";
   let modelId = partsName + "Model";
@@ -35,11 +48,7 @@ function createCpuAndGpuOption(partsName) {
           }
 
           if (!isBrand) {
-            const option = document.createElement("option");
-
-            option.value = item.Brand;
-            option.textContent = item.Brand;
-            brand.appendChild(option);
+            addOption(item, brand, "Brand");
           }
         });
 
@@ -49,11 +58,7 @@ function createCpuAndGpuOption(partsName) {
 
           data.forEach((item) => {
             if (e.target.value === item.Brand) {
-              const option = document.createElement("option");
-
-              option.value = item.Model;
-              option.textContent = item.Model;
-              model.appendChild(option);
+              addOption(item, model, "Model");
             }
           });
         });
@@ -65,11 +70,10 @@ function validateMemory(modelName, value) {
   let modelString = modelName.split(" ");
   let modelSize = modelString[modelString.length - 1];
 
-  console.log(modelSize[0] === value);
   return modelSize[0] === value;
 }
 
-function createMemoryOption() {
+function createMemorySelect() {
   let endpoint = config.url + "ram";
   let brandId = "ramBrand";
   let modelId = "ramModel";
@@ -85,8 +89,8 @@ function createMemoryOption() {
       fetch(endpoint)
         .then((response) => response.json())
         .then((data) => {
+          // brand名がoptionにあるか確認、なければoptionを追加
           data.forEach((item) => {
-            // brand名がoptionにあるか確認、なければoptionを追加
             let isBrand = false;
             for (let i = 0; i < brand.options.length; i++) {
               if (brand.options[i].value === item.Brand) {
@@ -96,11 +100,7 @@ function createMemoryOption() {
             }
 
             if (!isBrand) {
-              const option = document.createElement("option");
-
-              option.value = item.Brand;
-              option.textContent = item.Brand;
-              brand.appendChild(option);
+              addOption(item, brand, "Brand");
             }
           });
 
@@ -113,11 +113,7 @@ function createMemoryOption() {
                 e.target.value === item.Brand &&
                 validateMemory(item.Model, numberEvent.target.value)
               ) {
-                const option = document.createElement("option");
-
-                option.value = item.Model;
-                option.textContent = item.Model;
-                model.appendChild(option);
+                addOption(item, model, "Model");
               }
             });
           });
@@ -126,7 +122,7 @@ function createMemoryOption() {
   });
 }
 
-createCpuAndGpuOption("cpu");
-createCpuAndGpuOption("gpu");
+createCpuAndGpuSelect("cpu");
+createCpuAndGpuSelect("gpu");
 
-createMemoryOption();
+createMemorySelect();
