@@ -43,7 +43,7 @@ function createCpuAndGpuSelect(partsName) {
           }
 
           if (!isBrand) {
-            addOption(item.brand, brand);
+            addOption(item.Brand, brand);
           }
         });
 
@@ -53,7 +53,7 @@ function createCpuAndGpuSelect(partsName) {
 
           data.forEach((item) => {
             if (e.target.value === item.Brand) {
-              addOption(item.brand, model);
+              addOption(item.Model, model);
             }
           });
         });
