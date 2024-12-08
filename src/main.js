@@ -13,16 +13,11 @@ function initializeSelect(id) {
   select.appendChild(defaultOption);
 }
 
-function addOption(item, placeToAdd, selectName) {
+function addOption(item, placeToAdd) {
   const option = document.createElement("option");
 
-  if (selectName === "Brand") {
-    option.value = item.Brand;
-    option.textContent = item.Brand;
-  } else {
-    option.value = item.Model;
-    option.textContent = item.Model;
-  }
+  option.value = item;
+  option.textContent = item;
   placeToAdd.appendChild(option);
 }
 
@@ -48,7 +43,7 @@ function createCpuAndGpuSelect(partsName) {
           }
 
           if (!isBrand) {
-            addOption(item, brand, "Brand");
+            addOption(item.brand, brand);
           }
         });
 
@@ -58,7 +53,7 @@ function createCpuAndGpuSelect(partsName) {
 
           data.forEach((item) => {
             if (e.target.value === item.Brand) {
-              addOption(item, model, "Model");
+              addOption(item.brand, model);
             }
           });
         });
@@ -81,9 +76,91 @@ function createMemorySelect() {
   let brand = document.getElementById(brandId);
   let model = document.getElementById(modelId);
 
-  number.addEventListener("change", (numberEvent) => {
+  number.addEventListener("change", () => {
     initializeSelect(brandId);
     initializeSelect(modelId);
+  });
+
+  brand.addEventListener("focus", () => {
+    fetch(endpoint)
+      .then((response) => response.json())
+      .then((data) => {
+        // brand名がoptionにあるか確認、なければoptionを追加
+        data.forEach((item) => {
+          let isBrand = false;
+          for (let i = 0; i < brand.options.length; i++) {
+            if (brand.options[i].value === item.Brand) {
+              isBrand = true;
+              break;
+            }
+          }
+
+          if (!isBrand) {
+            addOption(item.Brand, brand);
+          }
+        });
+
+        // Brandのvalueによってmodelのオプションを変更
+        brand.addEventListener("change", (e) => {
+          initializeSelect(modelId);
+
+          data.forEach((item) => {
+            if (
+              e.target.value === item.Brand &&
+              validateMemory(item.Model, number.value)
+            ) {
+              addOption(item.Model, model);
+            }
+          });
+        });
+      });
+  });
+}
+
+function createStorageSelect() {
+  let endpoint = config.url;
+  let brandId = "storageBrand";
+  let modelId = "storageModel";
+  let storageSizeId = "storageSize";
+  let storageTypeId = "storageType";
+  let brand = document.getElementById(brandId);
+  let model = document.getElementById(modelId);
+  let storageType = document.getElementById(storageTypeId);
+  let storageSize = document.getElementById(storageSizeId);
+
+  storageType.addEventListener("change", (e) => {
+    let type = e.target.value;
+
+    initializeSelect(storageSizeId);
+    initializeSelect(brandId);
+    initializeSelect(modelId);
+
+    if (type === "ssd") endpoint = config.url + "ssd";
+    else if (type === "hdd") endpoint = config.url + "hdd";
+
+    fetch(endpoint)
+      .then((response) => response.json())
+      .then((data) => {
+        data.forEach((item) => {
+          let isSize = false;
+          for (let i = 0; i < storageSize.options.length; i++) {
+            if (storageSize.options[i].value === getStorageSize(item.Model)) {
+              isSize = true;
+              break;
+            }
+          }
+
+          if (!isSize) {
+            let size = getStorageSize(item.Model);
+            if (size !== "") addOption(size, storageSize);
+          }
+        });
+      });
+
+    storageSize.addEventListener("change", () => {
+      initializeSelect(brandId);
+      initializeSelect(modelId);
+    });
 
     brand.addEventListener("focus", () => {
       fetch(endpoint)
@@ -100,7 +177,7 @@ function createMemorySelect() {
             }
 
             if (!isBrand) {
-              addOption(item, brand, "Brand");
+              addOption(item.Brand, brand);
             }
           });
 
@@ -111,9 +188,9 @@ function createMemorySelect() {
             data.forEach((item) => {
               if (
                 e.target.value === item.Brand &&
-                validateMemory(item.Model, numberEvent.target.value)
+                validateStorage(item.Model, storageSize.value)
               ) {
-                addOption(item, model, "Model");
+                addOption(item.Model, model);
               }
             });
           });
@@ -122,7 +199,22 @@ function createMemorySelect() {
   });
 }
 
+function validateStorage(model, value) {
+  return getStorageSize(model) === value;
+}
+
+function getStorageSize(model) {
+  let modelString = model.split(" ");
+
+  for (let i = 0; i < modelString.length; i++) {
+    let unit = modelString[i].substring(modelString[i].length - 2);
+    if (unit === "GB" || unit === "TB") return modelString[i];
+  }
+
+  return "";
+}
+
 createCpuAndGpuSelect("cpu");
 createCpuAndGpuSelect("gpu");
-
 createMemorySelect();
+createStorageSelect();
