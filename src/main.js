@@ -214,6 +214,31 @@ function getStorageSize(model) {
   return "";
 }
 
+function getComputerScore(scoreMap, is_working = false) {
+  let score_cpu = scoreMap["cpu"];
+  let score_gpu = scoreMap["gpu"];
+  let score_ram = scoreMap["ram"];
+  let score_storage = scoreMap["storage"];
+
+  let weight_cpu = 0.25;
+  let weight_gpu = 0.6;
+  let weight_ram = 0.125;
+  let weight_storage = 0.025;
+
+  if (is_working) {
+    weight_ram = 0.1;
+    weight_storage = 0.05;
+  }
+
+  let total_score =
+    score_cpu * weight_cpu +
+    score_gpu * weight_gpu +
+    score_ram * weight_ram +
+    score_storage * weight_storage;
+
+  return total_score;
+}
+
 createCpuAndGpuSelect("cpu");
 createCpuAndGpuSelect("gpu");
 createMemorySelect();
