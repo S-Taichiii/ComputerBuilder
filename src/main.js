@@ -2,6 +2,13 @@ const config = {
   url: "https://api.recursionist.io/builder/computers?type=",
 };
 
+const benchmarks = {
+  cpu: 0,
+  gpu: 0,
+  ram: 0,
+  storage: 0,
+};
+
 // selectの中を初期化
 function initializeSelect(id) {
   let select = document.getElementById(id);
@@ -19,6 +26,15 @@ function addOption(item, placeToAdd) {
   option.value = item;
   option.textContent = item;
   placeToAdd.appendChild(option);
+}
+
+function addBenchmarks(data, value, partsName) {
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].Model === value) {
+      benchmarks[partsName] = data[i].Benchmark;
+      break;
+    }
+  }
 }
 
 function createCpuAndGpuSelect(partsName) {
@@ -56,6 +72,10 @@ function createCpuAndGpuSelect(partsName) {
               addOption(item.Model, model);
             }
           });
+        });
+
+        model.addEventListener("change", (e) => {
+          addBenchmarks(data, e.target.value, partsName);
         });
       });
   });
@@ -112,6 +132,10 @@ function createMemorySelect() {
               addOption(item.Model, model);
             }
           });
+        });
+
+        model.addEventListener("change", (e) => {
+          addBenchmarks(data, e.target.value, "ram");
         });
       });
   });
@@ -194,6 +218,10 @@ function createStorageSelect() {
               }
             });
           });
+
+          model.addEventListener("change", (e) => {
+            addBenchmarks(data, e.target.value, "storage");
+          });
         });
     });
   });
@@ -215,10 +243,10 @@ function getStorageSize(model) {
 }
 
 function getComputerScore(scoreMap, is_working = false) {
-  let score_cpu = scoreMap["cpu"];
-  let score_gpu = scoreMap["gpu"];
-  let score_ram = scoreMap["ram"];
-  let score_storage = scoreMap["storage"];
+  let score_cpu = scoreMap.cpu;
+  let score_gpu = scoreMap.gpu;
+  let score_ram = scoreMap.ram;
+  let score_storage = scoreMap.storage;
 
   let weight_cpu = 0.25;
   let weight_gpu = 0.6;
@@ -243,3 +271,12 @@ createCpuAndGpuSelect("cpu");
 createCpuAndGpuSelect("gpu");
 createMemorySelect();
 createStorageSelect();
+
+document.getElementById("calculateButton").addEventListener("click", () => {
+  console.log(benchmarks.cpu);
+  console.log(benchmarks.gpu);
+  console.log(benchmarks.ram);
+  console.log(benchmarks.storage);
+
+  console.log(getComputerScore(benchmarks));
+});
