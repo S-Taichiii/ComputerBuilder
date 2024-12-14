@@ -29,6 +29,10 @@ function addOption(item, placeToAdd) {
 }
 
 function addBenchmarks(data, value, partsName) {
+  if (value === "-") {
+    benchmarks[partsName] = 0;
+  }
+
   for (let i = 0; i < data.length; i++) {
     if (data[i].Model === value) {
       benchmarks[partsName] = data[i].Benchmark;
@@ -254,6 +258,8 @@ function getComputerScore(scoreMap, is_working = false) {
   let weight_storage = 0.025;
 
   if (is_working) {
+    weight_cpu = 0.6;
+    weight_gpu = 0.25;
     weight_ram = 0.1;
     weight_storage = 0.05;
   }
@@ -264,7 +270,45 @@ function getComputerScore(scoreMap, is_working = false) {
     score_ram * weight_ram +
     score_storage * weight_storage;
 
-  return total_score;
+  return Math.round(total_score);
+}
+
+function validateBenchmarks(benchmarks) {
+  let cpu = benchmarks.cpu;
+  let gpu = benchmarks.gpu;
+  let ram = benchmarks.ram;
+  let storage = benchmarks.storage;
+
+  return cpu !== 0 && gpu !== 0 && ram !== 0 && storage !== 0;
+}
+
+function showResult(num) {
+  let result = document.createElement("div");
+  result.classList.add(
+    "m-2",
+    "p-2",
+    "border",
+    "bg-primary",
+    "col-4",
+    "text-white",
+  );
+
+  let innerString = `
+    <h3 class="px-1">Your PC${num} specs</h3>
+    <div class="m-1 col-10 d-flex justify-content-around align-items-center">
+      <div>
+        <h5 class="p-1">Gaming Score</h5>
+        <h5 class="px-1">${getComputerScore(benchmarks)} %</h5>
+      </div>
+      <div>
+        <h5 class="p-1">Working Score</h5>
+        <h5 class="px-1">${getComputerScore(benchmarks, true)} %</h5>
+      </div>
+    </div>
+  `;
+
+  result.innerHTML = innerString;
+  return result;
 }
 
 createCpuAndGpuSelect("cpu");
@@ -272,11 +316,13 @@ createCpuAndGpuSelect("gpu");
 createMemorySelect();
 createStorageSelect();
 
+let result = document.getElementById("showResult");
+let counter = 1;
 document.getElementById("calculateButton").addEventListener("click", () => {
-  console.log(benchmarks.cpu);
-  console.log(benchmarks.gpu);
-  console.log(benchmarks.ram);
-  console.log(benchmarks.storage);
-
-  console.log(getComputerScore(benchmarks));
+  if (!validateBenchmarks(benchmarks)) {
+    alert("入力されていない項目があります");
+  } else {
+    result.append(showResult(counter));
+    counter++;
+  }
 });
