@@ -1,328 +1,124 @@
-const config = {
+config = {
+  parent: document.getElementById("app"),
   url: "https://api.recursionist.io/builder/computers?type=",
+  cpu: {
+    brand: "#cpuBrand",
+    model: "#cpuModel",
+  },
+  gpu: {
+    brand: "#gpuBrand",
+    model: "#gpuModel",
+  },
+  ram: {
+    num: "#ramNum",
+    brand: "#ramBrand",
+    model: "#ramModel",
+  },
+  storage: {
+    type: "#storageType",
+    size: "#storageSize",
+    brand: "#storageBrand",
+    model: "#storageModel",
+  },
 };
 
-const benchmarks = {
-  cpu: 0,
-  gpu: 0,
-  ram: 0,
-  storage: 0,
-};
-
-// selectの中を初期化
-function initializeSelect(id) {
-  let select = document.getElementById(id);
-  select.innerHTML = "";
-
-  const defaultOption = document.createElement("option");
-  defaultOption.value = "-";
-  defaultOption.textContent = "-";
-  select.appendChild(defaultOption);
-}
-
-function addOption(item, placeToAdd) {
-  const option = document.createElement("option");
-
-  option.value = item;
-  option.textContent = item;
-  placeToAdd.appendChild(option);
-}
-
-function addBenchmarks(data, value, partsName) {
-  if (value === "-") {
-    benchmarks[partsName] = 0;
+class PC {
+  constructor() {
+    this.cpuBrand = null;
+    this.cpuModel = null;
+    this.cpuBenchmark = null;
+    this.gpuBrand = null;
+    this.gpuModel = null;
+    this.gpuBenchmark = null;
+    this.ramBrand = null;
+    this.ramModel = null;
+    this.ramBenchmark = null;
+    this.storageType = null;
+    this.storageSize = null;
+    this.storageBrand = null;
+    this.storageModel = null;
+    this.storageBenchmark = null;
   }
 
-  for (let i = 0; i < data.length; i++) {
-    if (data[i].Model === value) {
-      benchmarks[partsName] = data[i].Benchmark;
-      break;
+  static addBrandData(parts, selectedBrand, pc) {
+    switch (parts) {
+      case "cpu":
+        pc.cpuBrand = selectedBrand;
+        break;
+      case "gpu":
+        pc.gpuBrand = selectedBrand;
+        break;
+      case "ram":
+        pc.ramBrand = selectedBrand;
+        break;
+      case "hdd":
+        pc.storageBrand = selectedBrand;
+        break;
+      case "ssd":
+        pc.storageBrand = selectedBrand;
+        break;
     }
   }
-}
 
-function createCpuAndGpuSelect(partsName) {
-  let endpoint = config.url + partsName;
-  let brandId = partsName + "Brand";
-  let modelId = partsName + "Model";
-  let brand = document.getElementById(brandId);
-  let model = document.getElementById(modelId);
-
-  brand.addEventListener("focus", () => {
-    fetch(endpoint)
-      .then((response) => response.json())
-      .then((data) => {
-        data.forEach((item) => {
-          // brand名がoptionにあるか確認、なければoptionを追加
-          let isBrand = false;
-          for (let i = 0; i < brand.options.length; i++) {
-            if (brand.options[i].value === item.Brand) {
-              isBrand = true;
-              break;
-            }
-          }
-
-          if (!isBrand) {
-            addOption(item.Brand, brand);
-          }
-        });
-
-        // Brandのvalueによってmodelのオプションを変更
-        brand.addEventListener("change", (e) => {
-          initializeSelect(modelId);
-
-          data.forEach((item) => {
-            if (e.target.value === item.Brand) {
-              addOption(item.Model, model);
-            }
-          });
-        });
-
-        model.addEventListener("change", (e) => {
-          addBenchmarks(data, e.target.value, partsName);
-        });
-      });
-  });
-}
-
-function validateMemory(modelName, value) {
-  let modelString = modelName.split(" ");
-  let modelSize = modelString[modelString.length - 1];
-
-  return modelSize[0] === value;
-}
-
-function createMemorySelect() {
-  let endpoint = config.url + "ram";
-  let brandId = "ramBrand";
-  let modelId = "ramModel";
-  let number = document.getElementById("howMany");
-  let brand = document.getElementById(brandId);
-  let model = document.getElementById(modelId);
-
-  number.addEventListener("change", () => {
-    initializeSelect(brandId);
-    initializeSelect(modelId);
-  });
-
-  brand.addEventListener("focus", () => {
-    fetch(endpoint)
-      .then((response) => response.json())
-      .then((data) => {
-        // brand名がoptionにあるか確認、なければoptionを追加
-        data.forEach((item) => {
-          let isBrand = false;
-          for (let i = 0; i < brand.options.length; i++) {
-            if (brand.options[i].value === item.Brand) {
-              isBrand = true;
-              break;
-            }
-          }
-
-          if (!isBrand) {
-            addOption(item.Brand, brand);
-          }
-        });
-
-        // Brandのvalueによってmodelのオプションを変更
-        brand.addEventListener("change", (e) => {
-          initializeSelect(modelId);
-
-          data.forEach((item) => {
-            if (
-              e.target.value === item.Brand &&
-              validateMemory(item.Model, number.value)
-            ) {
-              addOption(item.Model, model);
-            }
-          });
-        });
-
-        model.addEventListener("change", (e) => {
-          addBenchmarks(data, e.target.value, "ram");
-        });
-      });
-  });
-}
-
-function createStorageSelect() {
-  let endpoint = config.url;
-  let brandId = "storageBrand";
-  let modelId = "storageModel";
-  let storageSizeId = "storageSize";
-  let storageTypeId = "storageType";
-  let brand = document.getElementById(brandId);
-  let model = document.getElementById(modelId);
-  let storageType = document.getElementById(storageTypeId);
-  let storageSize = document.getElementById(storageSizeId);
-
-  storageType.addEventListener("change", (e) => {
-    let type = e.target.value;
-
-    initializeSelect(storageSizeId);
-    initializeSelect(brandId);
-    initializeSelect(modelId);
-
-    if (type === "ssd") endpoint = config.url + "ssd";
-    else if (type === "hdd") endpoint = config.url + "hdd";
-
-    fetch(endpoint)
-      .then((response) => response.json())
-      .then((data) => {
-        data.forEach((item) => {
-          let isSize = false;
-          for (let i = 0; i < storageSize.options.length; i++) {
-            if (storageSize.options[i].value === getStorageSize(item.Model)) {
-              isSize = true;
-              break;
-            }
-          }
-
-          if (!isSize) {
-            let size = getStorageSize(item.Model);
-            if (size !== "") addOption(size, storageSize);
-          }
-        });
-      });
-
-    storageSize.addEventListener("change", () => {
-      initializeSelect(brandId);
-      initializeSelect(modelId);
-    });
-
-    brand.addEventListener("focus", () => {
-      fetch(endpoint)
-        .then((response) => response.json())
-        .then((data) => {
-          // brand名がoptionにあるか確認、なければoptionを追加
-          data.forEach((item) => {
-            let isBrand = false;
-            for (let i = 0; i < brand.options.length; i++) {
-              if (brand.options[i].value === item.Brand) {
-                isBrand = true;
-                break;
-              }
-            }
-
-            if (!isBrand) {
-              addOption(item.Brand, brand);
-            }
-          });
-
-          // Brandのvalueによってmodelのオプションを変更
-          brand.addEventListener("change", (e) => {
-            initializeSelect(modelId);
-
-            data.forEach((item) => {
-              if (
-                e.target.value === item.Brand &&
-                validateStorage(item.Model, storageSize.value)
-              ) {
-                addOption(item.Model, model);
-              }
-            });
-          });
-
-          model.addEventListener("change", (e) => {
-            addBenchmarks(data, e.target.value, "storage");
-          });
-        });
-    });
-  });
-}
-
-function validateStorage(model, value) {
-  return getStorageSize(model) === value;
-}
-
-function getStorageSize(model) {
-  let modelString = model.split(" ");
-
-  for (let i = 0; i < modelString.length; i++) {
-    let unit = modelString[i].substring(modelString[i].length - 2);
-    if (unit === "GB" || unit === "TB") return modelString[i];
+  static addModelData(parts, selectedModel, pc) {
+    switch (parts) {
+      case "cpu":
+        pc.cpuModel = selectedModel;
+        break;
+      case "gpu":
+        pc.gpuModel = selectedModel;
+        break;
+      case "ram":
+        pc.ramModel = selectedModel;
+        break;
+      case "hdd":
+        pc.storageModel = selectedModel;
+        break;
+      case "ssd":
+        pc.storageModel = selectedModel;
+        break;
+    }
   }
 
-  return "";
-}
-
-function getComputerScore(scoreMap, is_working = false) {
-  let score_cpu = scoreMap.cpu;
-  let score_gpu = scoreMap.gpu;
-  let score_ram = scoreMap.ram;
-  let score_storage = scoreMap.storage;
-
-  let weight_cpu = 0.25;
-  let weight_gpu = 0.6;
-  let weight_ram = 0.125;
-  let weight_storage = 0.025;
-
-  if (is_working) {
-    weight_cpu = 0.6;
-    weight_gpu = 0.25;
-    weight_ram = 0.1;
-    weight_storage = 0.05;
+  static addBenchmarkData(parts, benchmark, pc) {
+    switch (parts) {
+      case "cpu":
+        pc.cpuBenchmark = benchmark;
+        break;
+      case "gpu":
+        pc.gpuBenchmark = benchmark;
+        break;
+      case "ram":
+        pc.ramBenchmark = benchmark;
+        break;
+      case "hdd":
+        pc.storageBenchmark = benchmark;
+        break;
+      case "ssd":
+        pc.storageBenchmark = benchmark;
+        break;
+    }
   }
 
-  let total_score =
-    score_cpu * weight_cpu +
-    score_gpu * weight_gpu +
-    score_ram * weight_ram +
-    score_storage * weight_storage;
-
-  return Math.round(total_score);
-}
-
-function validateBenchmarks(benchmarks) {
-  let cpu = benchmarks.cpu;
-  let gpu = benchmarks.gpu;
-  let ram = benchmarks.ram;
-  let storage = benchmarks.storage;
-
-  return cpu !== 0 && gpu !== 0 && ram !== 0 && storage !== 0;
-}
-
-function showResult(num) {
-  let result = document.createElement("div");
-  result.classList.add(
-    "m-2",
-    "p-2",
-    "border",
-    "bg-primary",
-    "col-4",
-    "text-white",
-  );
-
-  let innerString = `
-    <h3 class="px-1">Your PC${num} specs</h3>
-    <div class="m-1 col-10 d-flex justify-content-around align-items-center">
-      <div>
-        <h5 class="p-1">Gaming Score</h5>
-        <h5 class="px-1">${getComputerScore(benchmarks)} %</h5>
-      </div>
-      <div>
-        <h5 class="p-1">Working Score</h5>
-        <h5 class="px-1">${getComputerScore(benchmarks, true)} %</h5>
-      </div>
-    </div>
-  `;
-
-  result.innerHTML = innerString;
-  return result;
-}
-
-createCpuAndGpuSelect("cpu");
-createCpuAndGpuSelect("gpu");
-createMemorySelect();
-createStorageSelect();
-
-let result = document.getElementById("showResult");
-let counter = 1;
-document.getElementById("calculateButton").addEventListener("click", () => {
-  if (!validateBenchmarks(benchmarks)) {
-    alert("入力されていない項目があります");
-  } else {
-    result.append(showResult(counter));
-    counter++;
+  static addStorageSizeData(size, pc) {
+    pc.storageSize = size;
   }
-});
+
+  static getGamingBenchmark(pc) {
+    let cpuScore = parseInt(pc.cpuBenchmark * 0.25);
+    let gpuScore = parseInt(pc.gpuBenchmark * 0.6);
+    let ramScore = parseInt(pc.ramBenchmark * 0.125);
+    let storageScore = (this.storageType = "SSD"
+      ? parseInt(pc.storageBenchmark * 0.1)
+      : parseInt(pc.storageBenchmark * 0.025));
+    return cpuScore + gpuScore + ramScore + storageScore;
+  }
+
+  static getWorkBenchmark(pc) {
+    let cpuScore = parseInt(pc.cpuBenchmark * 0.6);
+    let gpuScore = parseInt(pc.gpuBenchmark * 0.25);
+    let ramScore = parseInt(pc.ramBenchmark * 0.1);
+    let storageScore = parseInt(pc.storageBenchmark * 0.05);
+    return cpuScore + gpuScore + ramScore + storageScore;
+  }
+}
