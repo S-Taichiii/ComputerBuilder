@@ -257,3 +257,23 @@ class View {
     return container;
   }
 }
+
+class Controller {
+  static app() {}
+  static getAllData(pc) {}
+  static getBrandData(parts, brandOp, modelOp, pc) {}
+  static getModelData(parts, brandOp, modelOp, benchmarkData, pc) {}
+  static getRamData(ramBrandOp, ramModelOp, pc) {}
+  static getStorageDAta(starageBrandOp, storageModelOp, pc) {}
+  static addOptionList(pc, arr) {}
+  static getStorageSizeData(type) {}
+  static getStorageSizeList(storageModelData) {}
+  static getBrand(data) {}
+  static getModel(data) {}
+  static getBenchMark(data) {}
+  static getStorageModel(data) {}
+  static getStorageSizeString(storageMoel) {}
+  static filterRamModel(number, ramModel) {}
+  static filterStorageModel(size, storageModel) {}
+  static showPcSpecs(pc) {}
+}
